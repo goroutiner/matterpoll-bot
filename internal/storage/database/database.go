@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"matterpoll-bot/config"
-	"matterpoll-bot/entities"
+	"matterpoll-bot/internal/entities"
 	"matterpoll-bot/internal/storage"
 	"sync"
 	"time"
@@ -34,7 +34,7 @@ func NewDatabaseConection() (*tarantool.Connection, error) {
 		Password: "secret",
 	}
 	opts := tarantool.Opts{
-		Timeout: 10 * time.Minute, // для теста, потом убрать
+		Timeout: 5 * time.Second,
 	}
 
 	conn, err := tarantool.Connect(ctx, dialer, opts)

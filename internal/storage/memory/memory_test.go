@@ -2,9 +2,8 @@ package memory
 
 import (
 	"fmt"
+	"matterpoll-bot/internal/entities"
 	"testing"
-
-	"matterpoll-bot/entities"
 
 	"github.com/stretchr/testify/require"
 )

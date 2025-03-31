@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	entities "matterpoll-bot/entities"
+	entities "matterpoll-bot/internal/entities"
 
 	mock "github.com/stretchr/testify/mock"
 )

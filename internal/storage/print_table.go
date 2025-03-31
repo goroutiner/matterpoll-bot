@@ -2,7 +2,7 @@ package storage
 
 import (
 	"fmt"
-	"matterpoll-bot/entities"
+	"matterpoll-bot/internal/entities"
 	"strings"
 )
 

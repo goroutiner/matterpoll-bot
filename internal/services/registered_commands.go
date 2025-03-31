@@ -3,14 +3,19 @@ package services
 import (
 	"fmt"
 	"matterpoll-bot/config"
-	"matterpoll-bot/entities"
+	"matterpoll-bot/internal/entities"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func RegisterCommands() error {
-	existingCommands, resp, err := entities.Bot.ListCommands(config.TeamId, false)
-	if err != nil || resp.StatusCode != 200 {
+	team, _, err := entities.Bot.GetTeamByName(config.TeamName, "")
+	if err != nil {
+		return fmt.Errorf("failed to get team: %v", err)
+	}
+
+	existingCommands, _, err := entities.Bot.ListCommands(team.Id, false)
+	if err != nil {
 		return fmt.Errorf("failed to list commands: %v", err)
 	}
 
@@ -25,10 +30,10 @@ func RegisterCommands() error {
 		}
 
 		newCommand := &model.Command{
-			TeamId:           config.TeamId,
+			TeamId:           team.Id,
 			Trigger:          cmd.Trigger,
 			Method:           "P",
-			URL:              config.ServerURL,
+			URL:              fmt.Sprintf("https://matterpoll-bot%s%s", config.BotSocket, cmd.URLPath),
 			DisplayName:      cmd.DisplayName,
 			Description:      cmd.Description,
 			AutoComplete:     true,

@@ -2,7 +2,7 @@ package database
 
 import (
 	"fmt"
-	"matterpoll-bot/entities"
+	"matterpoll-bot/internal/entities"
 )
 
 func parseData(data []interface{}) (*entities.Poll, error) {

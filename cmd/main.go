@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"matterpoll-bot/config"
-	"matterpoll-bot/entities"
+	"matterpoll-bot/internal/entities"
 	"matterpoll-bot/internal/handlers"
 	"matterpoll-bot/internal/services"
 	"matterpoll-bot/internal/storage"

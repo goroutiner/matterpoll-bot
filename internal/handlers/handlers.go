@@ -3,7 +3,7 @@ package handlers
 import (
 	"fmt"
 	"log"
-	"matterpoll-bot/entities"
+	"matterpoll-bot/internal/entities"
 	"matterpoll-bot/internal/services"
 	"net/http"
 	"strings"
@@ -13,6 +13,7 @@ import (
 
 func CreatePoll(s *services.PollService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
 		text := r.Form.Get("text")
 		args := strings.Split(text, `" "`)
 		if len(args) < 2 {
@@ -70,6 +71,7 @@ func CreatePoll(s *services.PollService) http.HandlerFunc {
 
 func Vote(s *services.PollService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
 		text := r.Form.Get("text")
 		args := strings.Split(text, `" "`)
 		if len(args) != 2 {
@@ -98,6 +100,7 @@ func Vote(s *services.PollService) http.HandlerFunc {
 
 func GetPollResults(s *services.PollService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
 		text := r.Form.Get("text")
 		args := strings.Split(text, `" "`)
 		if len(args) != 1 {
@@ -124,6 +127,7 @@ func GetPollResults(s *services.PollService) http.HandlerFunc {
 
 func ClosePoll(s *services.PollService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
 		text := r.Form.Get("text")
 		args := strings.Split(text, `" "`)
 		if len(args) != 1 {
@@ -151,6 +155,7 @@ func ClosePoll(s *services.PollService) http.HandlerFunc {
 
 func DeletePoll(s *services.PollService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
 		text := r.Form.Get("text")
 		args := strings.Split(text, `" "`)
 		if len(args) != 1 {

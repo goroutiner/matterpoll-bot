@@ -1,7 +1,7 @@
 package services
 
 import (
-	"matterpoll-bot/entities"
+	"matterpoll-bot/internal/entities"
 	"matterpoll-bot/internal/storage"
 )
 
