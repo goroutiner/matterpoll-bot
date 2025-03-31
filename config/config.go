@@ -8,5 +8,5 @@ var (
 	DbSocket  = os.Getenv("DB_SOCKET")
 	Mode      = os.Getenv("MODE")
 	BotToken  = os.Getenv("BOT_TOKEN")
-	TeamId    = os.Getenv("TEAM_ID")
+	TeamName  = os.Getenv("TEAM_NAME")
 )

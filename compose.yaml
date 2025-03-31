@@ -1,0 +1,45 @@
+services:
+  mattermost:
+    image: mattermost/mattermost-preview:latest
+    container_name: mattermost
+    ports:
+      - "8065:8065"
+      - "8075:8075"
+    environment:
+      - MM_SERVICESETTINGS_SITEURL=http://localhost:8065
+      - MM_SERVICESETTINGS_ALLOWEDUNTRUSTEDINTERNALCONNECTIONS=matterpoll-bot
+      - MM_CORSSETTINGS_ALLOWEDORIGINS=*
+      - MM_CORSSETTINGS_ALLOWCREDENTIALS=true
+    volumes:
+      - ./mattermost/data:/var/lib/mattermost
+      - ./mattermost/config:/mattermost/config
+    networks:
+      - my-network
+
+  matterpoll-bot:
+    build: .
+    container_name: matterpoll-bot
+    environment:
+      MODE: "database"
+      SERVER_URL: "http://mattermost:8065"
+      BOT_SOCKET: ":4000"
+      DB_SOCKET: "tarantool:3301"
+      TEAM_NAME: "Lol"
+      BOT_TOKEN: "p5qzrxj7uifn3g84xmonot7trc"
+    ports:
+      - "4000:4000"
+    networks:
+      - my-network
+    depends_on:
+      - tarantool
+    tty: true
+
+  tarantool:
+    build: internal/storage/database/docker
+    container_name: tarantool
+    networks:
+      - my-network
+    tty: true
+
+networks:
+  my-network:

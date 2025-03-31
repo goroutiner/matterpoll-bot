@@ -1,6 +1,6 @@
 package storage
 
-import "matterpoll-bot/entities"
+import "matterpoll-bot/internal/entities"
 
 
 type StoreInterface interface {

@@ -21,6 +21,7 @@ type Voice struct {
 
 type CommandInfo struct {
 	Trigger     string
+	URLPath     string
 	DisplayName string
 	Description string
 	Hint        string
@@ -44,10 +45,10 @@ var (
 	Bot         *model.Client4
 	SpaceName   = "polls"
 	CommandList = []CommandInfo{
-		{"poll-create", "Create poll", "Create a new poll", "`[\"question\"]` `[\"option1\"]` `[\"option2\"]` ..."},
-		{"poll-vote", "Vote", "Сast a vote", "`[\"poll_id\"]` `[\"option\"]`"},
-		{"poll-results", "Results", "Get poll results", "`[\"poll_id\"]`"},
-		{"poll-close", "Close poll", "Close an active poll", "`[\"poll_id\"]`"},
-		{"poll-delete", "Delete poll", "Delete an exists poll", "`[\"poll_id\"]`"},
+		{"poll-create", "/poll-create", "Create poll", "Create a new poll", "[\"question\"] [\"option1\"] [\"option2\"] ..."},
+		{"poll-vote", "/poll-vote", "Vote", "Сast a vote", "[\"poll_id\"] [\"option\"]"},
+		{"poll-results", "/poll-results", "Results", "Get poll results", "[\"poll_id\"]"},
+		{"poll-close", "/poll-close", "Close poll", "Close an active poll", "[\"poll_id\"]"},
+		{"poll-delete", "/poll-delete", "Delete poll", "Delete an exists poll", "[\"poll_id\"]"},
 	}
 )

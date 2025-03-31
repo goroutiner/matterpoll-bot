@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"matterpoll-bot/entities"
+	"matterpoll-bot/internal/entities"
 	"matterpoll-bot/internal/services"
 	"matterpoll-bot/internal/storage/mocks"
 

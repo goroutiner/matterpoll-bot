@@ -2,7 +2,7 @@ package memory
 
 import (
 	"fmt"
-	"matterpoll-bot/entities"
+	"matterpoll-bot/internal/entities"
 	"matterpoll-bot/internal/storage"
 	"sync"
 )
