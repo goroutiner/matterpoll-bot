@@ -111,7 +111,7 @@ docker compose up -d matterpoll-bot tarantool
 ## 🧑🏽‍💻 Примеры использования функционала:
 
 1. Отображение созданных команд: \
-   ![Commands](https://github.com/goroutiner/matterpoll-bot/raw/main/instructions/commands.png)
+   ![Commands](https://github.com/goroutiner/matterpoll-bot/raw/main/instructions/images/commands.png)
 
 2. Создание голосования:
 
@@ -119,7 +119,7 @@ docker compose up -d matterpoll-bot tarantool
 /poll-create "Example" "Option1" "Option2"
 ```
 
-![Created Poll](https://github.com/goroutiner/matterpoll-bot/raw/main/instructions/created_poll.png)
+![Created Poll](https://github.com/goroutiner/matterpoll-bot/raw/main/instructions/images/created_poll.png)
 
 3. Получение результатов:
 
@@ -127,7 +127,7 @@ docker compose up -d matterpoll-bot tarantool
 /poll-results "h3twm167pjgibyb5acdcjut5to"
 ```
 
-![Created Poll](https://github.com/goroutiner/matterpoll-bot/raw/main/instructions/poll_results.png)
+![Created Poll](https://github.com/goroutiner/matterpoll-bot/raw/main/instructions/images/poll_results.png)
 
 ---
 
