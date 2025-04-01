@@ -2,6 +2,9 @@ package database
 
 import "fmt"
 
+// convertMapInterfaceToStringInt преобразует карту с ключами и значениями 
+// типа interface{} в карту с ключами типа string и значениями типа int32.
+// Если тип ключа или значения не соответствует ожидаемому, возвращается ошибка.
 func convertMapInterfaceToStringInt(input map[interface{}]interface{}) (map[string]int32, error) {
 	result := make(map[string]int32)
 
@@ -25,6 +28,9 @@ func convertMapInterfaceToStringInt(input map[interface{}]interface{}) (map[stri
 	return result, nil
 }
 
+// convertMapInterfaceToStringBool преобразует карту с ключами и значениями 
+// типа interface{} в карту с ключами типа string и значениями типа bool.
+// Если тип ключа или значения не соответствует ожидаемому, возвращается ошибка.
 func convertMapInterfaceToStringBool(input map[interface{}]interface{}) (map[string]bool, error) {
 	result := make(map[string]bool)
 

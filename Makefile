@@ -1,5 +1,5 @@
 run:
-	@echo "Запуск бота:"
+	@echo "Запуск бота в демонстрационном режиме:"
 	@docker compose up -d
 
 stop:

@@ -110,7 +110,6 @@ func TestDeletePoll(t *testing.T) {
 	pollId := "poll1"
 	userId := "user1"
 
-	// Успешное удаление опроса
 	t.Run("Success deleted Poll", func(t *testing.T) {
 		mockStore.On("DeletePoll", mock.Anything, mock.Anything).Return(fmt.Sprintf("*Poll*: `%s` **has been successfully deleted!**", pollId), nil)
 

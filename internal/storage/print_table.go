@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// PrintTable принимает объект типа *entities.Poll и возвращает строку, представляющую таблицу с информацией о голосовании.
 func PrintTable(poll *entities.Poll) string {
 	var sb strings.Builder
 
@@ -30,5 +31,5 @@ func PrintTable(poll *entities.Poll) string {
 	sb.WriteString(fmt.Sprintf("| *Question*: `%s` |\n", poll.Question))
 	sb.WriteString(fmt.Sprintf("| *Status:* %s |", voteStatus))
 
-    return sb.String()
+	return sb.String()
 }

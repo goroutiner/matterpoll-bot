@@ -5,6 +5,8 @@ import (
 	"matterpoll-bot/internal/entities"
 )
 
+// ValidateVoice проверяет корректность голоса пользователя для указанного опроса.
+// Если голос недействителен, возвращается ошибка с описанием причины.
 func ValidateVoice(poll *entities.Poll, voice *entities.Voice) error {
 	if _, existsOption := poll.Options[voice.Option]; !existsOption {
 		return entities.NewUserError("**Invalid option!**")
