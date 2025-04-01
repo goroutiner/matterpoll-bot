@@ -20,11 +20,12 @@ type Database struct {
 	mu   sync.RWMutex
 }
 
-// NewDatabaseConection возвращает структуру соединения с БД
+// NewDatabaseConection возвращает структуру соединения с БД.
 func NewDatabaseStore(conn *tarantool.Connection) *Database {
 	return &Database{conn: conn}
 }
 
+// NewDatabaseConection создает соединение с БД.
 func NewDatabaseConection() (*tarantool.Connection, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -45,6 +46,7 @@ func NewDatabaseConection() (*tarantool.Connection, error) {
 	return conn, err
 }
 
+// CreatePoll добавляет новый опроса в базу данных.
 func (d *Database) CreatePoll(poll *entities.Poll) error {
 	tuple := []interface{}{
 		poll.PollId,
@@ -63,6 +65,8 @@ func (d *Database) CreatePoll(poll *entities.Poll) error {
 	return nil
 }
 
+// Vote регистрирует голос пользователя в опросе,
+// в соответствии с выбранным вариантом и обновляет данные БД.
 func (d *Database) Vote(voice *entities.Voice) (string, error) {
 	reqGet := tarantool.NewSelectRequest(entities.SpaceName).
 		Index("poll_id_index").
@@ -104,6 +108,7 @@ func (d *Database) Vote(voice *entities.Voice) (string, error) {
 	return "**Voice recorded!**", nil
 }
 
+// GetPollResult получает результаты опроса из БД.
 func (d *Database) GetPollResult(pollId string) (string, error) {
 	reqGet := tarantool.NewSelectRequest(entities.SpaceName).
 		Index("poll_id_index").
@@ -125,6 +130,7 @@ func (d *Database) GetPollResult(pollId string) (string, error) {
 	return tbl, nil
 }
 
+// ClosePoll закрывает опрос и обновляет данные  в БД.
 func (d *Database) ClosePoll(pollId, userId string) (string, error) {
 	reqGet := tarantool.NewSelectRequest(entities.SpaceName).
 		Index("poll_id_index").
@@ -160,6 +166,7 @@ func (d *Database) ClosePoll(pollId, userId string) (string, error) {
 	return fmt.Sprintf("*Poll*: `%s` **has been successfully closed!**", pollId), nil
 }
 
+// DeletePoll удаляет опрос из БД.
 func (d *Database) DeletePoll(pollId, userId string) (string, error) {
 	reqGet := tarantool.NewSelectRequest(entities.SpaceName).
 		Index("poll_id_index").

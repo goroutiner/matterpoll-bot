@@ -12,13 +12,14 @@ type Memory struct {
 	mu    sync.RWMutex
 }
 
-// NewMemoryStore возвращает структуру для хранения ссылок во внутренней памяти
+// NewMemoryStore возвращает структуру для хранения ссылок во внутренней памяти.
 func NewMemoryStore() *Memory {
 	return &Memory{
 		polls: make(map[string]*entities.Poll, 0),
 	}
 }
 
+// CreatePoll сохраняет новый опрос во внутренней памяти.
 func (m *Memory) CreatePoll(poll *entities.Poll) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -27,6 +28,8 @@ func (m *Memory) CreatePoll(poll *entities.Poll) error {
 	return nil
 }
 
+// Vote регистрирует голос пользователя в опросе,
+// в соответствии с выбранным вариантом и обновляет данные во внутренней памяти.
 func (m *Memory) Vote(voice *entities.Voice) (string, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -45,6 +48,7 @@ func (m *Memory) Vote(voice *entities.Voice) (string, error) {
 	return "**Voice recorded!**", nil
 }
 
+// GetPollResult получает результаты опроса из внутренней памяти.
 func (m *Memory) GetPollResult(pollId string) (string, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -58,6 +62,7 @@ func (m *Memory) GetPollResult(pollId string) (string, error) {
 	return tbl, nil
 }
 
+// ClosePoll закрывает опрос и обновляет данные во внутренней памяти.
 func (m *Memory) ClosePoll(pollId, userId string) (string, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -77,6 +82,7 @@ func (m *Memory) ClosePoll(pollId, userId string) (string, error) {
 	return fmt.Sprintf("*Poll*: `%s` **has been successfully closed!**", pollId), nil
 }
 
+// DeletePoll удаляет опрос из внутренней памяти.
 func (m *Memory) DeletePoll(pollId, userId string) (string, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -93,6 +99,7 @@ func (m *Memory) DeletePoll(pollId, userId string) (string, error) {
 	return fmt.Sprintf("*Poll*: `%s` **has been successfully delete!**", pollId), nil
 }
 
+// getPoll получает структуру опроса по Id и проверяет ее существование.
 func (m *Memory) getPoll(pollId string) (*entities.Poll, error) {
 	poll := m.polls[pollId]
 	if poll == nil {

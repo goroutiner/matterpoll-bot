@@ -11,13 +11,20 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
+// CreatePoll обрабатывает HTTP-запрос и разбирает полученные параметры в соответствии с примером:
+// "text": строка в формате `/poll-create "Question" "Option1" "Option2" ...`,
+// где Question — вопрос для голосвания, а Option1, Option2  — варианты для голоса.
+// Обработчик разбирает параметр "text", чтобы извлечь вопрос и варианты ответа.
+// Если создание голосования прошло успешно, возвращается сообщение с результатом
+// Если формат параметра "text" некорректен, возвращается сообщение об ошибке с примером правильного формата.
+// Создает новые опросы, закрепляя за ними id создателя.
 func CreatePoll(s *services.PollService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		text := r.Form.Get("text")
 		args := strings.Split(text, `" "`)
 		if len(args) < 2 {
-			w.Write([]byte("**Invalid format!** *Example*: `/poll-create \"Question\" \"Option1\" \"Option2\" ... \"OptionN\"`"))
+			w.Write([]byte("**Invalid format!** *Example*: `/poll-create \"Question\" \"Option1\" \"Option2\" ...`"))
 			return
 		}
 
@@ -69,6 +76,13 @@ func CreatePoll(s *services.PollService) http.HandlerFunc {
 	}
 }
 
+// Vote обрабатывает HTTP-запрос для голосования в опросе.
+// Ожидается, что запрос будет содержать параметры формы:
+// "text": строка в формате `"Poll_ID" "Option"`, где Poll_ID — идентификатор опроса, а Option — выбранный вариант.
+// Обработчик разбирает параметр "text", чтобы извлечь идентификатор опроса и вариант ответа для голоса.
+// Если голосование успешно, возвращается сообщение с результатом.
+// Если формат параметра "text" некорректен, возвращается сообщение об ошибке с примером правильного формата.
+// В случае ошибки возвращается соответствующее сообщение об ошибке или статус HTTP 500 для внутренних ошибок сервера.
 func Vote(s *services.PollService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
@@ -98,6 +112,13 @@ func Vote(s *services.PollService) http.HandlerFunc {
 	}
 }
 
+// GetPollResults обрабатывает HTTP-запрос для получения результатов опроса.
+// Ожидается, что запрос будет содержать параметр формы:
+// "text": строка в формате `"Poll_ID"`, где Poll_ID — идентификатор опроса.
+// Обработчик разбирает параметр "text", чтобы извлечь идентификатор опроса.
+// Если формат параметра "text" некорректен, возвращается сообщение об ошибке с примером правильного формата.
+// Если получение результатов прошло успешно, возвращается сообщение с результатами опроса.
+// В случае ошибки возвращается соответствующее сообщение об ошибке или статус HTTP 500 для внутренних ошибок сервера.
 func GetPollResults(s *services.PollService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
@@ -125,13 +146,20 @@ func GetPollResults(s *services.PollService) http.HandlerFunc {
 	}
 }
 
+// ClosePoll обрабатывает HTTP-запрос для закрытия опроса.
+// Ожидается, что запрос будет содержать следующие параметры формы:
+// "text": строка в формате `"Poll_ID"`, где Poll_ID — идентификатор опроса.
+// Обработчик разбирает параметр "text", чтобы извлечь идентификатор опроса.
+// Если формат параметра "text" некорректен, возвращается сообщение об ошибке с примером правильного формата.
+// Если получение результатов прошло успешно, возвращается сообщение с результатами опроса.
+// В случае ошибки возвращается соответствующее сообщение об ошибке или статус HTTP 500 для внутренних ошибок сервера.
 func ClosePoll(s *services.PollService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		text := r.Form.Get("text")
 		args := strings.Split(text, `" "`)
 		if len(args) != 1 {
-			w.Write([]byte("**Invalid format!** *Example*: `/poll-close \"Poll_ID\"`"))
+			w.Write([]byte("**Неверный формат!** *Пример*: `/poll-close \"Poll_ID\"`"))
 			return
 		}
 
@@ -153,6 +181,14 @@ func ClosePoll(s *services.PollService) http.HandlerFunc {
 	}
 }
 
+// DeletePoll обрабатывает HTTP-запрос для удаления опроса.
+// Этот обработчик ожидает, что запрос будет содержать следующие параметры формы:
+// Ожидается, что запрос будет содержать следующие параметры формы:
+// "text": строка в формате `"Poll_ID"`, где Poll_ID — идентификатор опроса.
+// Обработчик разбирает параметр "text", чтобы извлечь идентификатор опроса.
+// Если формат параметра "text" некорректен, возвращается сообщение об ошибке с примером правильного формата.
+// Если получение результатов прошло успешно, возвращается сообщение с результатами опроса.
+// В случае ошибки возвращается соответствующее сообщение об ошибке или статус HTTP 500 для внутренних ошибок сервера.
 func DeletePoll(s *services.PollService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()

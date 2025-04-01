@@ -1,5 +1,5 @@
 services:
-  mattermost:
+  mattermost: # запускается только для демонстрационного режима
     image: mattermost/mattermost-preview:latest
     container_name: mattermost
     ports:
@@ -21,11 +21,11 @@ services:
     container_name: matterpoll-bot
     environment:
       MODE: "database"
-      SERVER_URL: "http://mattermost:8065"
+      SERVER_URL: "http://mattermost:8065" # измените на свой домен при наличии
       BOT_SOCKET: ":4000"
       DB_SOCKET: "tarantool:3301"
-      TEAM_NAME: "Lol"
-      BOT_TOKEN: "p5qzrxj7uifn3g84xmonot7trc"
+      TEAM_NAME: "your_team_name" # измените на свое имя команды
+      BOT_TOKEN: "your_bot_token" # измените на свой токен
     ports:
       - "4000:4000"
     networks:

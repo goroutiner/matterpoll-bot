@@ -8,6 +8,9 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
+// RegisterCommands регистрирует команды Mattermost для бота.
+// Сначала проверяется наличие команды в списке существующих команд,
+// затем создаются новые команды, если они еще не зарегистрированы.
 func RegisterCommands() error {
 	team, _, err := entities.Bot.GetTeamByName(config.TeamName, "")
 	if err != nil {
