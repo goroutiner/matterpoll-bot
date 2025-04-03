@@ -9,8 +9,8 @@
 
 **Mattermost Poll Bot** — это бот для сервера **Mattermost**, который позволяет пользователям создавать голосования, голосовать и просматривать результаты. Бот поддерживает два режима хранения данных:
 
-- **In-Memory** (по умолчанию)
-- **Tarantool** (если включено в настройках)
+- **memory**
+- **database** 
 
 ---
 
@@ -42,7 +42,7 @@ git clone https://github.com/goroutiner/matterpoll-bot.git
 docker compose up -d mattermost
 ```
 
-2. Перейдите на web-версию **Mattermost**:http://localhost:8065 и выполните следующую инструкцию [инструкция](/instructions)
+2. Перейдите на web-версию **Mattermost**:http://localhost:8065 и выполните следующую [инструкцию](/instructions)
 
 3. Прописываем имя команды и полученный токен бота в переменные окружения в файле `compose.yaml` для сервиса `matterpoll-bot`:
 
@@ -146,6 +146,7 @@ make unit-tests
 - **Язык программирования**: Go (Golang)
 - **База данных**: Tarantool
 - **Библиотеки**:
-  - [mattermost/mattermost-server/v6](github.com/mattermost/mattermost-server/v6) для работы с API Mattermost.
-  - [tarantool/go-tarantool/v2](github.com/tarantool/go-tarantool/v2) для взаимодействия с базой данных.
-  - [stretchr/testify](https://github.com/stretchr/testify) для написания тестов.
+  - [mattermost/mattermost-server/v6](github.com/mattermost/mattermost-server/v6) для работы с API Mattermost
+  - [tarantool/go-tarantool/v2](github.com/tarantool/go-tarantool/v2) для взаимодействия с базой данных
+  - [stretchr/testify](https://github.com/stretchr/testify) для написания тестов
+  - [vektra/mockery](https://github.com/vektra/mockery) для генерации mocks

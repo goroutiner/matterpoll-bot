@@ -20,7 +20,6 @@ import (
 // Создает новые опросы, закрепляя за ними id создателя.
 func CreatePoll(s *services.PollService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
 		text := r.Form.Get("text")
 		args := strings.Split(text, `" "`)
 		if len(args) < 2 {
@@ -30,8 +29,8 @@ func CreatePoll(s *services.PollService) http.HandlerFunc {
 
 		question := strings.Trim(args[0], `"`)
 		options := args[1:]
-		voices := make(map[string]int32, len(options))
 
+		voices := make(map[string]int32, len(options))
 		for i := range options {
 			options[i] = strings.Trim(options[i], `"`)
 			voices[options[i]] = 0
@@ -39,9 +38,14 @@ func CreatePoll(s *services.PollService) http.HandlerFunc {
 
 		optionsStr := strings.Join(options, "` `")
 		optionsStr = "`" + optionsStr + "`"
+
 		id := model.NewId()
 		userId := r.Form.Get("user_id")
-
+		if userId == "" {
+			http.Error(w, "'user_id' is empty in the form data", http.StatusBadRequest)
+			return
+		}
+		
 		poll := &entities.Poll{
 			PollId:   id,
 			Question: question,
@@ -63,8 +67,13 @@ func CreatePoll(s *services.PollService) http.HandlerFunc {
 		}
 
 		channelId := r.Form.Get("channel_id")
+		if channelId == "" {
+			http.Error(w, "'channel_id' is empty in the form data", http.StatusBadRequest)
+			return
+		}
+
 		post := &model.Post{ChannelId: channelId, Message: fmt.Sprintf("**Poll created!** *Poll_ID*: `%s` *Question*: `%s` *Options*: %s", id, question, optionsStr)}
-		if _, _, err = entities.Bot.CreatePost(post); err != nil {
+		if _, resp, err := entities.Bot.CreatePost(post); err != nil || resp.StatusCode != 201 {
 			if userErr, ok := err.(*entities.UserError); ok {
 				w.Write([]byte(userErr.Error()))
 				return
@@ -85,7 +94,6 @@ func CreatePoll(s *services.PollService) http.HandlerFunc {
 // В случае ошибки возвращается соответствующее сообщение об ошибке или статус HTTP 500 для внутренних ошибок сервера.
 func Vote(s *services.PollService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
 		text := r.Form.Get("text")
 		args := strings.Split(text, `" "`)
 		if len(args) != 2 {
@@ -94,8 +102,13 @@ func Vote(s *services.PollService) http.HandlerFunc {
 		}
 
 		pollId := strings.Trim(args[0], `"`)
-		userId := r.Form.Get("user_id")
 		option := strings.Trim(args[1], `"`)
+
+		userId := r.Form.Get("user_id")
+		if userId == "" {
+			http.Error(w, "'user_id' is empty in the form data", http.StatusBadRequest)
+			return
+		}
 
 		voice := &entities.Voice{PollId: pollId, UserId: userId, Option: option}
 		msg, err := s.Vote(voice)
@@ -121,7 +134,6 @@ func Vote(s *services.PollService) http.HandlerFunc {
 // В случае ошибки возвращается соответствующее сообщение об ошибке или статус HTTP 500 для внутренних ошибок сервера.
 func GetPollResults(s *services.PollService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
 		text := r.Form.Get("text")
 		args := strings.Split(text, `" "`)
 		if len(args) != 1 {
@@ -155,7 +167,6 @@ func GetPollResults(s *services.PollService) http.HandlerFunc {
 // В случае ошибки возвращается соответствующее сообщение об ошибке или статус HTTP 500 для внутренних ошибок сервера.
 func ClosePoll(s *services.PollService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
 		text := r.Form.Get("text")
 		args := strings.Split(text, `" "`)
 		if len(args) != 1 {
@@ -165,6 +176,11 @@ func ClosePoll(s *services.PollService) http.HandlerFunc {
 
 		pollId := strings.Trim(args[0], `"`)
 		userId := r.Form.Get("user_id")
+		if userId == "" {
+			http.Error(w, "'user_id' is empty in the form data", http.StatusBadRequest)
+			return
+		}
+
 		msg, err := s.ClosePoll(pollId, userId)
 		if err != nil {
 			if userErr, ok := err.(*entities.UserError); ok {
@@ -191,7 +207,6 @@ func ClosePoll(s *services.PollService) http.HandlerFunc {
 // В случае ошибки возвращается соответствующее сообщение об ошибке или статус HTTP 500 для внутренних ошибок сервера.
 func DeletePoll(s *services.PollService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
 		text := r.Form.Get("text")
 		args := strings.Split(text, `" "`)
 		if len(args) != 1 {
@@ -201,6 +216,11 @@ func DeletePoll(s *services.PollService) http.HandlerFunc {
 
 		pollId := strings.Trim(args[0], `"`)
 		userId := r.Form.Get("user_id")
+		if userId == "" {
+			http.Error(w, "'user_id' is empty in the form data", http.StatusBadRequest)
+			return
+		}
+		
 		msg, err := s.DeletePoll(pollId, userId)
 		if err != nil {
 			if userErr, ok := err.(*entities.UserError); ok {

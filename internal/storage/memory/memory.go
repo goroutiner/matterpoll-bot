@@ -8,14 +8,16 @@ import (
 )
 
 type Memory struct {
-	polls map[string]*entities.Poll
-	mu    sync.RWMutex
+	polls     map[string]*entities.Poll
+	cmdTokens map[string]string
+	mu        sync.RWMutex
 }
 
 // NewMemoryStore возвращает структуру для хранения ссылок во внутренней памяти.
 func NewMemoryStore() *Memory {
 	return &Memory{
-		polls: make(map[string]*entities.Poll, 0),
+		polls:     map[string]*entities.Poll{},
+		cmdTokens: map[string]string{},
 	}
 }
 
@@ -99,11 +101,28 @@ func (m *Memory) DeletePoll(pollId, userId string) (string, error) {
 	return fmt.Sprintf("*Poll*: `%s` **has been successfully delete!**", pollId), nil
 }
 
+func (m *Memory) AddCmdToken(cmdPath, token string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.cmdTokens[cmdPath] = token
+
+	return nil
+}
+
+func (m *Memory) ValidateCmdToken(cmdPath, token string) bool {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	_, has := m.cmdTokens[cmdPath]
+
+	return has
+}
+
 // getPoll получает структуру опроса по Id и проверяет ее существование.
 func (m *Memory) getPoll(pollId string) (*entities.Poll, error) {
 	poll := m.polls[pollId]
 	if poll == nil {
 		return nil, entities.NewUserError("**Invalid Poll_ID or not exists!**")
 	}
+	
 	return poll, nil
 }
