@@ -21,10 +21,6 @@ func main() {
 
 	entities.Bot = model.NewAPIv4Client(config.ServerURL)
 	entities.Bot.SetToken(config.BotToken)
-	
-	if err := services.RegisterCommands(); err != nil {
-		log.Fatalln(err)
-	}
 
 	switch config.Mode {
 	case "memory":
@@ -35,6 +31,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+		defer conn.CloseGraceful()
 
 		store = database.NewDatabaseStore(conn)
 		log.Println("Using database store")
@@ -43,20 +40,26 @@ func main() {
 	}
 
 	pollService := services.NewPollService(store)
+	if err := pollService.RegisterCommands(); err != nil {
+		log.Fatalln(err)
+	}
+
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/poll-create", handlers.CreatePoll(pollService))
-	mux.HandleFunc("/poll-vote", handlers.Vote(pollService))
-	mux.HandleFunc("/poll-results", handlers.GetPollResults(pollService))
-	mux.HandleFunc("/poll-close", handlers.ClosePoll(pollService))
-	mux.HandleFunc("/poll-delete", handlers.DeletePoll(pollService))
+	mux.HandleFunc("/poll-create", handlers.TokenValidatorMiddleware(store, handlers.CreatePoll(pollService)))
+	mux.HandleFunc("/poll-vote", handlers.TokenValidatorMiddleware(store, handlers.Vote(pollService)))
+	mux.HandleFunc("/poll-results", handlers.TokenValidatorMiddleware(store, handlers.GetPollResults(pollService)))
+	mux.HandleFunc("/poll-close", handlers.TokenValidatorMiddleware(store, handlers.ClosePoll(pollService)))
+	mux.HandleFunc("/poll-delete", handlers.TokenValidatorMiddleware(store, handlers.DeletePoll(pollService)))
 
 	serv := &http.Server{
 		Addr:         config.BotSocket,
 		Handler:      mux,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  120 * time.Second,
+		IdleTimeout:  60 * time.Second,
+		ReadHeaderTimeout: 2 * time.Second,
+		MaxHeaderBytes: 1 << 20, 
 	}
 
 	fmt.Println("Bot is running ...")

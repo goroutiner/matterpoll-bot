@@ -4,27 +4,37 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
+// Poll представляет сущность опроса.
+// Поля структуры:
+// - PollId: уникальный идентификатор опроса.
+// - Question: текст вопроса опроса.
+// - Options: варианты ответа с количеством голосов за каждый вариант.
+// Poll представляет сущность опроса.
 type Poll struct {
-	PollId   string           `json:"id"`
-	Question string           `json:"question"`
-	Options  map[string]int32 `json:"options"`
-	Voters   map[string]bool
-	Creator  string `json:"creator"`
-	Closed   bool   `json:"closed"`
+	PollId   string           // PollId - уникальный идентификатор опроса
+	Question string           // Question - текст вопроса опроса.
+	Options  map[string]int32 // Options - варианты ответа с количеством голосов за каждый вариант.
+	Voters   map[string]bool  // Voters: список пользователей, проголосовавших в опросе (по идентификатору).
+	Creator  string           // Creator - идентификатор создателя опроса.
+	Closed   bool             // Closed - флаг, указывающий, закрыт ли опрос.
+
 }
 
+// Voice представляет сущность голоса пользователя в опросе.
 type Voice struct {
-	PollId string
-	UserId string
-	Option string
+	PollId string // PollId - уникальный идентификатор опроса
+	UserId string // UserId - идентификатор пользователя, который проголосовал.
+	Option string // Option - выбранный пользователем вариант ответа.
+
 }
 
+// CommandInfo представляет информацию о команде бота.
 type CommandInfo struct {
-	Trigger     string
-	URLPath     string
-	DisplayName string
-	Description string
-	Hint        string
+	Trigger     string // Trigger - триггер команды, который пользователь вводит для её вызова.
+	URLPath     string // URLPath - путь URL, связанный с командой, для обработки запросов.
+	DisplayName string // DisplayName - отображаемое имя команды, показываемое пользователю.
+	Description string // Description - описание команды, объясняющее её функциональность.
+	Hint        string // Hint - подсказка или дополнительная информация о том, как использовать команду.
 }
 
 // UserError представляет ошибки, которые можно показывать пользователям.
@@ -42,9 +52,10 @@ func NewUserError(message string) error {
 }
 
 var (
-	Bot         *model.Client4
-	SpaceName   = "polls"
-	CommandList = []CommandInfo{
+	Bot             *model.Client4
+	PollsSpaceName  = "polls"      // PollsSpaceName - имя пространства для хранения опросов в Tarantool.
+	TokensSpaceName = "cmd_tokens" // PollsSpaceName - имя пространства для хранения токенов команд в Tarantool.
+	CommandList     = []CommandInfo{
 		{"poll-create", "/poll-create", "Create poll", "Create a new poll", "[\"question\"] [\"option1\"] [\"option2\"] ..."},
 		{"poll-vote", "/poll-vote", "Vote", "Сast a vote", "[\"poll_id\"] [\"option\"]"},
 		{"poll-results", "/poll-results", "Results", "Get poll results", "[\"poll_id\"]"},

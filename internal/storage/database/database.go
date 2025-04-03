@@ -3,10 +3,10 @@ package database
 import (
 	"context"
 	"fmt"
+	"log"
 	"matterpoll-bot/config"
 	"matterpoll-bot/internal/entities"
 	"matterpoll-bot/internal/storage"
-	"sync"
 	"time"
 
 	"github.com/tarantool/go-tarantool/v2"
@@ -17,7 +17,6 @@ import (
 
 type Database struct {
 	conn *tarantool.Connection
-	mu   sync.RWMutex
 }
 
 // NewDatabaseConection возвращает структуру соединения с БД.
@@ -35,7 +34,10 @@ func NewDatabaseConection() (*tarantool.Connection, error) {
 		Password: "secret",
 	}
 	opts := tarantool.Opts{
-		Timeout: 5 * time.Second,
+		Timeout:       1 * time.Minute,
+		Reconnect:     500 * time.Millisecond,
+		MaxReconnects: 10,
+		RateLimit:     100,
 	}
 
 	conn, err := tarantool.Connect(ctx, dialer, opts)
@@ -46,7 +48,7 @@ func NewDatabaseConection() (*tarantool.Connection, error) {
 	return conn, err
 }
 
-// CreatePoll добавляет новый опроса в базу данных.
+// CreatePoll добавляет новый опрос в базу данных.
 func (d *Database) CreatePoll(poll *entities.Poll) error {
 	tuple := []interface{}{
 		poll.PollId,
@@ -57,8 +59,8 @@ func (d *Database) CreatePoll(poll *entities.Poll) error {
 		poll.Closed,
 	}
 
-	req := tarantool.NewInsertRequest(entities.SpaceName).Tuple(tuple)
-	if _, err := d.conn.Do(req).Get(); err != nil {
+	reqPost := tarantool.NewInsertRequest(entities.PollsSpaceName).Tuple(tuple)
+	if _, err := d.conn.Do(reqPost).Get(); err != nil {
 		return err
 	}
 
@@ -68,41 +70,38 @@ func (d *Database) CreatePoll(poll *entities.Poll) error {
 // Vote регистрирует голос пользователя в опросе,
 // в соответствии с выбранным вариантом и обновляет данные БД.
 func (d *Database) Vote(voice *entities.Voice) (string, error) {
-	reqGet := tarantool.NewSelectRequest(entities.SpaceName).
-		Index("poll_id_index").
-		Limit(1).
+	reqGet := tarantool.NewSelectRequest(entities.PollsSpaceName).
+		Index("primary").
 		Iterator(tarantool.IterEq).
 		Key([]interface{}{voice.PollId})
 	data, err := d.conn.Do(reqGet).Get()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to execute select request: %w", err)
 	}
 
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	info, err := parseData(data)
+	poll, err := parseData(data)
 	if err != nil {
 		return "", err
 	}
 
-	if info.Closed {
+	if poll.Closed {
 		return "", entities.NewUserError(fmt.Sprintf("*Poll*: `%s` **is closed!**", voice.PollId))
 	}
 
-	if err := storage.ValidateVoice(info, voice); err != nil {
+	if err := storage.ValidateVoice(poll, voice); err != nil {
 		return "", err
 	}
 
-	info.Options[voice.Option]++
-	info.Voters[voice.UserId] = true
+	poll.Options[voice.Option]++
+	poll.Voters[voice.UserId] = true
 
-	reqUpd := tarantool.NewUpdateRequest(entities.SpaceName).
+	reqUpd := tarantool.NewUpdateRequest(entities.PollsSpaceName).
 		Key([]interface{}{voice.PollId}).
 		Operations(tarantool.NewOperations().
-			Assign(2, info.Options).
-			Assign(3, info.Voters))
+			Assign(2, poll.Options).
+			Assign(3, poll.Voters))
 	if _, err = d.conn.Do(reqUpd).Get(); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to execute update request: %w", err)
 	}
 
 	return "**Voice recorded!**", nil
@@ -110,14 +109,13 @@ func (d *Database) Vote(voice *entities.Voice) (string, error) {
 
 // GetPollResult получает результаты опроса из БД.
 func (d *Database) GetPollResult(pollId string) (string, error) {
-	reqGet := tarantool.NewSelectRequest(entities.SpaceName).
-		Index("poll_id_index").
-		Limit(1).
+	reqGet := tarantool.NewSelectRequest(entities.PollsSpaceName).
+		Index("primary").
 		Iterator(tarantool.IterEq).
 		Key([]interface{}{pollId})
 	data, err := d.conn.Do(reqGet).Get()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to execute select request: %w", err)
 	}
 
 	poll, err := parseData(data)
@@ -130,16 +128,15 @@ func (d *Database) GetPollResult(pollId string) (string, error) {
 	return tbl, nil
 }
 
-// ClosePoll закрывает опрос и обновляет данные  в БД.
+// ClosePoll закрывает опрос и обновляет данные в БД.
 func (d *Database) ClosePoll(pollId, userId string) (string, error) {
-	reqGet := tarantool.NewSelectRequest(entities.SpaceName).
-		Index("poll_id_index").
-		Limit(1).
+	reqGet := tarantool.NewSelectRequest(entities.PollsSpaceName).
+		Index("primary").
 		Iterator(tarantool.IterEq).
 		Key([]interface{}{pollId})
 	data, err := d.conn.Do(reqGet).Get()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to execute select request: %w", err)
 	}
 
 	poll, err := parseData(data)
@@ -155,12 +152,12 @@ func (d *Database) ClosePoll(pollId, userId string) (string, error) {
 	}
 	poll.Closed = true
 
-	reqUpdate := tarantool.NewUpdateRequest(entities.SpaceName).
+	reqUpdate := tarantool.NewUpdateRequest(entities.PollsSpaceName).
 		Key([]interface{}{pollId}).
 		Operations(tarantool.NewOperations().
 			Assign(5, poll.Closed))
 	if _, err = d.conn.Do(reqUpdate).Get(); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to execute update request: %w", err)
 	}
 
 	return fmt.Sprintf("*Poll*: `%s` **has been successfully closed!**", pollId), nil
@@ -168,14 +165,13 @@ func (d *Database) ClosePoll(pollId, userId string) (string, error) {
 
 // DeletePoll удаляет опрос из БД.
 func (d *Database) DeletePoll(pollId, userId string) (string, error) {
-	reqGet := tarantool.NewSelectRequest(entities.SpaceName).
-		Index("poll_id_index").
-		Limit(1).
+	reqGet := tarantool.NewSelectRequest(entities.PollsSpaceName).
+		Index("primary").
 		Iterator(tarantool.IterEq).
 		Key([]interface{}{pollId})
 	data, err := d.conn.Do(reqGet).Get()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to execute select request: %w", err)
 	}
 
 	poll, err := parseData(data)
@@ -187,11 +183,51 @@ func (d *Database) DeletePoll(pollId, userId string) (string, error) {
 		return "", entities.NewUserError("**You don't have the permission to delete a vote!**")
 	}
 
-	reqUpd := tarantool.NewDeleteRequest(entities.SpaceName).
+	reqUpd := tarantool.NewDeleteRequest(entities.PollsSpaceName).
 		Key([]interface{}{pollId})
 	if _, err = d.conn.Do(reqUpd).Get(); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to execute delete request: %w", err)
 	}
 
 	return fmt.Sprintf("*Poll*: `%s` **has been successfully delete!**", pollId), nil
+}
+
+func (d *Database) AddCmdToken(cmdPath, token string) error {
+	tuple := []interface{}{cmdPath, token}
+	reqPost := tarantool.NewInsertRequest(entities.TokensSpaceName).
+		Tuple(tuple)
+
+	if _, err := d.conn.Do(reqPost).Get(); err != nil {
+		return fmt.Errorf("failed to execute upsert request: %w", err)
+	}
+
+	return nil
+}
+
+func (d *Database) ValidateCmdToken(cmdPath, token string) bool {
+	reqGet := tarantool.NewSelectRequest(entities.TokensSpaceName).
+		Index("primary").
+		Iterator(tarantool.IterEq).
+		Key([]interface{}{cmdPath})
+	data, err := d.conn.Do(reqGet).Get()
+	if err != nil {
+		log.Printf("Error validating token: %v\n", err)
+		return false
+	}
+
+	if len(data) == 0 {
+		return false
+	}
+
+	tuple, ok := data[0].([]interface{})
+	if !ok || len(tuple) < 2 {
+		return false
+	}
+
+	validToken, ok := tuple[1].(string)
+	if !ok {
+		return false
+	}
+
+	return validToken == token
 }

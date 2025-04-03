@@ -13,6 +13,24 @@ type StoreInterface struct {
 	mock.Mock
 }
 
+// AddCmdToken provides a mock function with given fields: cmdName, token
+func (_m *StoreInterface) AddCmdToken(cmdName string, token string) error {
+	ret := _m.Called(cmdName, token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddCmdToken")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(cmdName, token)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ClosePoll provides a mock function with given fields: pollId, userId
 func (_m *StoreInterface) ClosePoll(pollId string, userId string) (string, error) {
 	ret := _m.Called(pollId, userId)
@@ -113,6 +131,24 @@ func (_m *StoreInterface) GetPollResult(pollId string) (string, error) {
 	}
 
 	return r0, r1
+}
+
+// ValidateCmdToken provides a mock function with given fields: cmdName, token
+func (_m *StoreInterface) ValidateCmdToken(cmdName string, token string) bool {
+	ret := _m.Called(cmdName, token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ValidateCmdToken")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, string) bool); ok {
+		r0 = rf(cmdName, token)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
 }
 
 // Vote provides a mock function with given fields: voice
