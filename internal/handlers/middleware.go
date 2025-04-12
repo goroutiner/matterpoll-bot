@@ -25,7 +25,7 @@ func TokenValidatorMiddleware(store storage.StoreInterface, next http.HandlerFun
 			http.Error(w, "Invalid token", http.StatusUnauthorized)
 			return
 		}
-		
+
 		next(w, r)
 	}
 }

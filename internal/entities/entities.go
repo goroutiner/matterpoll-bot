@@ -37,6 +37,12 @@ type CommandInfo struct {
 	Hint        string // Hint - подсказка или дополнительная информация о том, как использовать команду.
 }
 
+type TarantoolConfig struct {
+	Address  string
+	User     string
+	Password string
+}
+
 // UserError представляет ошибки, которые можно показывать пользователям.
 type UserError struct {
 	Message string

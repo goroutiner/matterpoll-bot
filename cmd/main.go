@@ -27,7 +27,12 @@ func main() {
 		store = memory.NewMemoryStore()
 		log.Println("Using memory store")
 	case "database":
-		conn, err := database.NewDatabaseConection()
+		ttConf := &entities.TarantoolConfig{
+			Address:  config.DbSocket,
+			User:     "user",
+			Password: "secret",
+		}
+		conn, err := database.NewDatabaseConection(ttConf)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -53,13 +58,13 @@ func main() {
 	mux.HandleFunc("/poll-delete", handlers.TokenValidatorMiddleware(store, handlers.DeletePoll(pollService)))
 
 	serv := &http.Server{
-		Addr:         config.BotSocket,
-		Handler:      mux,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  60 * time.Second,
+		Addr:              config.BotSocket,
+		Handler:           mux,
+		ReadTimeout:       5 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       60 * time.Second,
 		ReadHeaderTimeout: 2 * time.Second,
-		MaxHeaderBytes: 1 << 20, 
+		MaxHeaderBytes:    1 << 20,
 	}
 
 	fmt.Println("Bot is running ...")
