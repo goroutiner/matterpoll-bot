@@ -5,11 +5,11 @@ import (
 	"matterpoll-bot/internal/entities"
 )
 
-// parseData преобразовывает слайс интерфейсов к ожидаемым типам.
+// ParseData преобразовывает слайс интерфейсов к ожидаемым типам.
 //   - `pollId`, `questions`, `creator` — строки.
 //   - `options` и `voters` — карты, которые преобразуются с помощью вспомогательных функций.
 //   - `closed` — булево значение.
-func parseData(data []interface{}) (*entities.Poll, error) {
+func ParseData(data []interface{}) (*entities.Poll, error) {
 	if len(data) == 0 {
 		return nil, entities.NewUserError("**Invalid Poll_ID or not exists!**")
 	}

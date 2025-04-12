@@ -109,3 +109,4 @@ func (ps *PollService) RegisterCommands() error {
 
 	return nil
 }
+

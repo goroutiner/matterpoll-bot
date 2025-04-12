@@ -7,14 +7,15 @@ import (
 
 	"matterpoll-bot/internal/entities"
 	"matterpoll-bot/internal/services"
-	"matterpoll-bot/internal/storage/mocks"
+	"matterpoll-bot/internal/storage/store_mocks"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
+// TestCreatePoll проверяет функциональность создания опроса.
 func TestCreatePoll(t *testing.T) {
-	mockStore := mocks.NewStoreInterface(t)
+	mockStore := store_mocks.NewStoreInterface(t)
 	pollService := services.NewPollService(mockStore)
 
 	poll := &entities.Poll{
@@ -25,27 +26,28 @@ func TestCreatePoll(t *testing.T) {
 		Closed:   false,
 	}
 
-	t.Run("Success created Poll", func(t *testing.T){
+	t.Run("success created Poll", func(t *testing.T) {
 		mockStore.On("CreatePoll", mock.Anything).Return(nil)
 
 		err := pollService.CreatePoll(poll)
 		require.NoError(t, err)
-		mockStore.AssertCalled(t, "CreatePoll", poll)	
+		mockStore.AssertCalled(t, "CreatePoll", poll)
 	})
 
-	t.Run("Failed created Poll", func(t *testing.T){
+	t.Run("failed created Poll", func(t *testing.T) {
 		mockStore.ExpectedCalls = nil
 		mockStore.On("CreatePoll", mock.Anything).Return(errors.New("failed to create poll"))
-	
+
 		err := pollService.CreatePoll(poll)
 		require.Error(t, err)
 		require.Equal(t, "failed to create poll", err.Error())
-		mockStore.AssertCalled(t, "CreatePoll", poll)	
+		mockStore.AssertCalled(t, "CreatePoll", poll)
 	})
 }
 
+// TestVote проверяет функциональность голосования в опросе.
 func TestVote(t *testing.T) {
-	mockStore := mocks.NewStoreInterface(t)
+	mockStore := store_mocks.NewStoreInterface(t)
 	pollService := services.NewPollService(mockStore)
 
 	voice := &entities.Voice{
@@ -54,7 +56,7 @@ func TestVote(t *testing.T) {
 		Option: "Red",
 	}
 
-	t.Run("Success Vote", func(t *testing.T) {
+	t.Run("success Vote", func(t *testing.T) {
 		mockStore.On("Vote", mock.Anything).Return("**Voice recorded!**", nil)
 
 		msg, err := pollService.Vote(voice)
@@ -62,7 +64,7 @@ func TestVote(t *testing.T) {
 		require.Equal(t, "**Voice recorded!**", msg)
 	})
 
-	t.Run("Failed Vote", func(t *testing.T) {
+	t.Run("failed Vote", func(t *testing.T) {
 		mockStore.ExpectedCalls = nil
 		mockStore.On("Vote", mock.Anything).Return("", errors.New("**Invalid Poll_ID or not exists!**"))
 
@@ -74,14 +76,15 @@ func TestVote(t *testing.T) {
 	})
 }
 
+// TestClosePoll проверяет функциональность закрытия опроса.
 func TestClosePoll(t *testing.T) {
-	mockStore := mocks.NewStoreInterface(t)
+	mockStore := store_mocks.NewStoreInterface(t)
 	pollService := services.NewPollService(mockStore)
 
 	pollId := "poll1"
 	userId := "user1"
 
-	t.Run("Success closed Poll", func(t *testing.T) {
+	t.Run("success closed Poll", func(t *testing.T) {
 		mockStore.On("ClosePoll", mock.Anything, mock.Anything).Return(fmt.Sprintf("*Poll*: `%s` **has been successfully closed!**", pollId), nil)
 
 		msg, err := pollService.ClosePoll(pollId, userId)
@@ -91,7 +94,7 @@ func TestClosePoll(t *testing.T) {
 
 	})
 
-	t.Run("Failed closed Poll", func(t *testing.T) {
+	t.Run("failed closed Poll", func(t *testing.T) {
 		mockStore.ExpectedCalls = nil
 		mockStore.On("ClosePoll", mock.Anything, mock.Anything).Return("", fmt.Errorf("*Poll*: `%s` **has already been closed!**", pollId))
 
@@ -103,14 +106,15 @@ func TestClosePoll(t *testing.T) {
 	})
 }
 
+// TestDeletePoll проверяет функциональность удаления опроса.
 func TestDeletePoll(t *testing.T) {
-	mockStore := mocks.NewStoreInterface(t)
+	mockStore := store_mocks.NewStoreInterface(t)
 	pollService := services.NewPollService(mockStore)
 
 	pollId := "poll1"
 	userId := "user1"
 
-	t.Run("Success deleted Poll", func(t *testing.T) {
+	t.Run("success deleted Poll", func(t *testing.T) {
 		mockStore.On("DeletePoll", mock.Anything, mock.Anything).Return(fmt.Sprintf("*Poll*: `%s` **has been successfully deleted!**", pollId), nil)
 
 		msg, err := pollService.DeletePoll(pollId, userId)
@@ -120,7 +124,7 @@ func TestDeletePoll(t *testing.T) {
 
 	})
 
-	t.Run("Failed closed Poll", func(t *testing.T) {
+	t.Run("failed closed Poll", func(t *testing.T) {
 		mockStore.ExpectedCalls = nil
 		mockStore.On("DeletePoll", mock.Anything, mock.Anything).Return("", fmt.Errorf("**Invalid Poll_ID or not exists!**"))
 
@@ -132,13 +136,14 @@ func TestDeletePoll(t *testing.T) {
 	})
 }
 
+// TestGetPollResult проверяет функциональность получения результатов опроса.
 func TestGetPollResult(t *testing.T) {
-	mockStore := mocks.NewStoreInterface(t)
+	mockStore := store_mocks.NewStoreInterface(t)
 	pollService := services.NewPollService(mockStore)
 
 	pollId := "poll1"
 
-	t.Run("Success got Poll results", func(t *testing.T) {
+	t.Run("success got Poll results", func(t *testing.T) {
 		mockStore.On("GetPollResult", mock.Anything).Return("**Poll Results:** Red: 5, Blue: 3", nil)
 
 		result, err := pollService.GetPollResult(pollId)
@@ -147,7 +152,7 @@ func TestGetPollResult(t *testing.T) {
 		mockStore.AssertCalled(t, "GetPollResult", pollId)
 	})
 
-	t.Run("Failed got Poll results", func(t *testing.T) {
+	t.Run("failed got Poll results", func(t *testing.T) {
 		mockStore.ExpectedCalls = nil
 		mockStore.On("GetPollResult", mock.Anything).Return("", fmt.Errorf("**Invalid Poll_ID or not exists!**"))
 
