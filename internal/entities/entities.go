@@ -1,9 +1,5 @@
 package entities
 
-import (
-	"github.com/mattermost/mattermost-server/v6/model"
-)
-
 // Poll представляет сущность опроса.
 // Поля структуры:
 // - PollId: уникальный идентификатор опроса.
@@ -58,7 +54,6 @@ func NewUserError(message string) error {
 }
 
 var (
-	Bot             *model.Client4
 	PollsSpaceName  = "polls"      // PollsSpaceName - имя пространства для хранения опросов в Tarantool.
 	TokensSpaceName = "cmd_tokens" // PollsSpaceName - имя пространства для хранения токенов команд в Tarantool.
 	CommandList     = []CommandInfo{

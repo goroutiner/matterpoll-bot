@@ -17,7 +17,7 @@ unit-tests: vet
 	@go test -v ./internal/services/...
 
 	@echo "Запуск unit-тестов для storage:"
-	@go test -v internal/storage/validate_poll_test.go
+	@go test -v internal/storage/validate_poll-unit_test.go
 	@go test -v ./internal/storage/memory/...
 
 	@echo "Запуск unit-тестов для handlers:"

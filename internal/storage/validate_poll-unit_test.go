@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestValidateVoice тестирует функционал проверки корректности голосования в опросе.
 func TestValidateVoice(t *testing.T) {
     t.Run("Invalid option", func(t *testing.T) {
         poll := &entities.Poll{

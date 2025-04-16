@@ -43,7 +43,7 @@ func NewDatabaseConection(conf *entities.TarantoolConfig) (*tarantool.Connection
 
 	conn, err := tarantool.Connect(ctx, dialer, opts)
 	if err != nil {
-		return nil, fmt.Errorf("connection refused: %v", err)
+		return nil, fmt.Errorf("connection refused: %w", err)
 	}
 
 	return conn, err
@@ -189,6 +189,7 @@ func (d *Database) DeletePoll(pollId, userId string) (string, error) {
 	return fmt.Sprintf("*Poll*: `%s` **has been successfully delete!**", pollId), nil
 }
 
+// AddCmdToken добавляет новую запись с командным путем и токеном в пространство TokensSpaceName.
 func (d *Database) AddCmdToken(cmdPath, token string) error {
 	tuple := []interface{}{cmdPath, token}
 	reqPost := tarantool.NewInsertRequest(entities.TokensSpaceName).
@@ -201,6 +202,8 @@ func (d *Database) AddCmdToken(cmdPath, token string) error {
 	return nil
 }
 
+// ValidateCmdToken проверяет, соответствует ли переданный токен 
+// заданному пути команды в базе данных Tarantool.
 func (d *Database) ValidateCmdToken(cmdPath, token string) bool {
 	reqGet := tarantool.NewSelectRequest(entities.TokensSpaceName).
 		Index("primary").

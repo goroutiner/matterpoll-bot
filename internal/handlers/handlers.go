@@ -45,7 +45,7 @@ func CreatePoll(s *services.PollService) http.HandlerFunc {
 			http.Error(w, "'user_id' is empty in the form data", http.StatusBadRequest)
 			return
 		}
-		
+
 		poll := &entities.Poll{
 			PollId:   id,
 			Question: question,
@@ -62,7 +62,7 @@ func CreatePoll(s *services.PollService) http.HandlerFunc {
 				return
 			}
 			log.Println(err)
-			http.Error(w, "Failed to create Poll", http.StatusInternalServerError)
+			http.Error(w, "failed to create Poll", http.StatusInternalServerError)
 			return
 		}
 
@@ -73,14 +73,19 @@ func CreatePoll(s *services.PollService) http.HandlerFunc {
 		}
 
 		post := &model.Post{ChannelId: channelId, Message: fmt.Sprintf("**Poll created!** *Poll_ID*: `%s` *Question*: `%s` *Options*: %s", id, question, optionsStr)}
-		if _, resp, err := entities.Bot.CreatePost(post); err != nil || resp.StatusCode != 201 {
+		_, resp, err := s.Bot.CreatePost(post)
+		if err != nil {
 			if userErr, ok := err.(*entities.UserError); ok {
 				w.Write([]byte(userErr.Error()))
 				return
 			}
+
 			log.Println(err)
-			http.Error(w, "Failed to create Poll", http.StatusInternalServerError)
-			return
+			http.Error(w, "failed to create Poll", http.StatusInternalServerError)
+		}
+
+		if resp == nil || resp.StatusCode != 201 {
+			w.Write([]byte(fmt.Sprintf("failed to get team: unexpected status code %d", resp.StatusCode)))
 		}
 	}
 }
@@ -118,7 +123,7 @@ func Vote(s *services.PollService) http.HandlerFunc {
 				return
 			}
 			log.Println(err)
-			http.Error(w, "Failed to vote", http.StatusInternalServerError)
+			http.Error(w, "failed to vote", http.StatusInternalServerError)
 		}
 
 		w.Write([]byte(msg))
@@ -150,7 +155,7 @@ func GetPollResults(s *services.PollService) http.HandlerFunc {
 			}
 
 			log.Println(err)
-			http.Error(w, "Failed to vote", http.StatusInternalServerError)
+			http.Error(w, "failed to get poll results", http.StatusInternalServerError)
 			return
 		}
 
@@ -189,7 +194,7 @@ func ClosePoll(s *services.PollService) http.HandlerFunc {
 			}
 
 			log.Println(err)
-			http.Error(w, "Failed to close poll", http.StatusInternalServerError)
+			http.Error(w, "failed to close poll", http.StatusInternalServerError)
 			return
 		}
 
@@ -220,7 +225,7 @@ func DeletePoll(s *services.PollService) http.HandlerFunc {
 			http.Error(w, "'user_id' is empty in the form data", http.StatusBadRequest)
 			return
 		}
-		
+
 		msg, err := s.DeletePoll(pollId, userId)
 		if err != nil {
 			if userErr, ok := err.(*entities.UserError); ok {
@@ -229,7 +234,7 @@ func DeletePoll(s *services.PollService) http.HandlerFunc {
 			}
 
 			log.Println(err)
-			http.Error(w, "Failed to delete", http.StatusInternalServerError)
+			http.Error(w, "failed to delete", http.StatusInternalServerError)
 			return
 		}
 

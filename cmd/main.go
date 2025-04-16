@@ -19,8 +19,8 @@ import (
 func main() {
 	var store storage.StoreInterface
 
-	entities.Bot = model.NewAPIv4Client(config.ServerURL)
-	entities.Bot.SetToken(config.BotToken)
+	bot := model.NewAPIv4Client(config.ServerURL)
+	bot.SetToken(config.BotToken)
 
 	switch config.Mode {
 	case "memory":
@@ -44,7 +44,7 @@ func main() {
 		log.Fatalf("config.Mode is empty in /internal/config/config.go")
 	}
 
-	pollService := services.NewPollService(store)
+	pollService := services.NewPollService(bot, store)
 	if err := pollService.RegisterCommands(); err != nil {
 		log.Fatalln(err)
 	}
