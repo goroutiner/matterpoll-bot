@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"log"
 	"matterpoll-bot/config"
 	"matterpoll-bot/internal/entities"
 	"matterpoll-bot/internal/storage"
@@ -10,12 +11,13 @@ import (
 )
 
 type PollService struct {
+	Bot   BotInterface
 	store storage.StoreInterface
 }
 
 // NewPollService возвращает структуру сервиса голосований.
-func NewPollService(s storage.StoreInterface) *PollService {
-	return &PollService{store: s}
+func NewPollService(bot BotInterface, s storage.StoreInterface) *PollService {
+	return &PollService{Bot: bot, store: s}
 }
 
 // CreatePoll создает новый опрос и сохраняет его в хранилище.
@@ -63,14 +65,22 @@ func (ps *PollService) DeletePoll(pollId, userId string) (string, error) {
 // Сначала проверяется наличие команды в списке существующих команд,
 // затем создаются новые команды, если они еще не зарегистрированы.
 func (ps *PollService) RegisterCommands() error {
-	team, resp, err := entities.Bot.GetTeamByName(config.TeamName, "")
-	if err != nil || resp.StatusCode != 200 {
-		return fmt.Errorf("failed to get team: %v", err)
+	team, resp, err := ps.Bot.GetTeamByName(config.TeamName, "")
+	if err != nil {
+		return fmt.Errorf("failed to get team: %w", err)
 	}
 
-	existingCommands, resp, err := entities.Bot.ListCommands(team.Id, false)
-	if err != nil || resp.StatusCode != 200 {
-		return fmt.Errorf("failed to list commands: %v", err)
+	if resp == nil || resp.StatusCode != 200 {
+		return fmt.Errorf("failed to get team: unexpected status code %d", resp.StatusCode)
+	}
+
+	existingCommands, resp, err := ps.Bot.ListCommands(team.Id, false)
+	if err != nil {
+		return fmt.Errorf("failed to get commands list: %w", err)
+	}
+
+	if resp == nil || resp.StatusCode != 200 {
+		return fmt.Errorf("failed to get commands list: unexpected status code %d", resp.StatusCode)
 	}
 
 	registeredCommands := make(map[string]bool)
@@ -95,18 +105,21 @@ func (ps *PollService) RegisterCommands() error {
 			AutoCompleteHint: cmd.Hint,
 		}
 
-		createdCommand, resp, err := entities.Bot.CreateCommand(newCommand)
-		if err != nil || resp.StatusCode != 201 {
-			return fmt.Errorf("failed to create command '/%s': %v", cmd.Trigger, err)
+		createdCommand, resp, err := ps.Bot.CreateCommand(newCommand)
+		if err != nil {
+			return fmt.Errorf("failed to create command '%s': %w", cmd.URLPath, err)
+		}
+
+		if resp == nil || resp.StatusCode != 201 {
+			return fmt.Errorf("failed to create command: unexpected status code %d", resp.StatusCode)
 		}
 
 		if err := ps.store.AddCmdToken(cmd.URLPath, createdCommand.Token); err != nil {
-			return err
+			return fmt.Errorf("failed to add cmd token : %w", err)
 		}
 
-		fmt.Printf("Created command '/%s' with token: %s\n", cmd.Trigger, createdCommand.Token)
+		log.Printf("Created command '%s' with token: %s\n", cmd.URLPath, createdCommand.Token)
 	}
 
 	return nil
 }
-

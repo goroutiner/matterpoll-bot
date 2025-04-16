@@ -49,6 +49,7 @@ func TestTokenValidatorMiddleware(t *testing.T) {
 	})
 
 	t.Run("invalid token", func(t *testing.T) {
+		// Проверяем обработку статуса ответа при передачи невалидного токена
 		token := "invalids_token"
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -69,7 +70,7 @@ func TestTokenValidatorMiddleware(t *testing.T) {
 		require.Contains(t, actualResponse, expectedResponse)
 		mockStore.AssertCalled(t, "ValidateCmdToken", cmdPath, token)
 
-        // empty token
+        // Проверяем обработку статуса ответа при передачи пустого токена
 		token = ""
 
 		req = httptest.NewRequest(http.MethodGet, "/", nil)
